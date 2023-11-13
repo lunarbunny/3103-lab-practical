@@ -12,6 +12,7 @@ pipeline {
             steps {
                 dir('webserver') {
                     sh 'npm ci'
+                    sh 'npm start'
                     sh 'npm run test:ci'
                 }
             }
