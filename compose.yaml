@@ -1,0 +1,16 @@
+services:
+  nginx:
+    build: ./nginx
+    image: nginxproxy
+    container_name: nginxproxy
+    networks:
+      - default
+    ports:
+      - "9000:80"
+
+  web:
+    build: ./webserver
+    image: webserver
+    container_name: webserver
+    networks:
+      - default
