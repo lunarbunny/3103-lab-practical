@@ -13,7 +13,8 @@ pipeline {
                 dir('webserver') {
                     sh 'npm ci'
                     sh 'npm run build'
-                    sh 'npm run start'
+                    sh 'npm run start &'
+                    sleep(10)
                     sh 'npm run test:ci'
                 }
             }
