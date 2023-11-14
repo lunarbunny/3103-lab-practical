@@ -49,12 +49,10 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    dir('webserver') {
-                        nodejs(nodeJSInstallationName: 'NodeJS') {
-                            withSonarQubeEnv('SonarQube') {
-                                sh "${SONARQUBE_HOME}/bin/sonar-scanner -Dsonar.projectKey=lab -Dsonar.sources=."
-                            }
+                nodejs(nodeJSInstallationName: 'NodeJS') {
+                    withSonarQubeEnv('SonarQube') {
+                        script {
+                            sh "${SONARQUBE_HOME}/bin/sonar-scanner -Dsonar.projectKey=lab -Dsonar.sources=./webserver"
                         }
                     }
                 }
