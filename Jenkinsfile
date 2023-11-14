@@ -2,11 +2,11 @@ pipeline {
 	agent any
 
     environment {
-        SONARQUBE_SCANNER_HOME = tool 'SonarQube'
+        SONARQUBE_HOME = tool 'SonarQube'
     }
 
 	stages {
-        stage('Cypress Integration Test NextJS') {
+        stage('Cypress E2E Tests NextJS') {
             agent {
                 docker {
                     image 'cypress/base:20.9.0'
@@ -28,28 +28,34 @@ pipeline {
             steps {
                 // Run OWASP Dependency-Check
                 // https://jeremylong.github.io/DependencyCheck/dependency-check-cli/arguments.html
+
+                dir('webserver') {
+                    nodejs(nodeJSInstallationName: 'NodeJS') {
+                        sh 'npm ci'
+                        
+                        dependencyCheck additionalArguments: '''
+                        -s '.'
+                        --exclude '.next/**'
+                        -f 'HTML'
+                        -f 'XML'
+                        ''', odcInstallation: 'OWASP Dependency-Check Vulnerabilities'
                 
-                // Install deps first
-                nodejs(nodeJSInstallationName: 'NodeJS') {
-                    sh 'npm install --prefix ./frontend'
+                        // Write report to specified file
+                        dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+                    }
                 }
-
-                dependencyCheck additionalArguments: ''' 
-                            -o './dependency-check-report-web.xml'
-                            -s './webserver'
-                            -f 'XML' 
-                            ''', odcInstallation: 'OWASP Dependency-Check Vulnerabilities'
-
-                // Write report to specified file
-                dependencyCheckPublisher pattern: 'dependency-check-report-*.xml'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    withSonarQubeEnv('SonarQube') {
-                        sh "${SONARQUBE_SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=lab -Dsonar.sources=."
+                    dir('webserver') {
+                        nodejs(nodeJSInstallationName: 'NodeJS') {
+                            withSonarQubeEnv('SonarQube') {
+                                sh "${SONARQUBE_HOME}/bin/sonar-scanner -Dsonar.projectKey=lab -Dsonar.sources=."
+                            }
+                        }
                     }
                 }
             }
