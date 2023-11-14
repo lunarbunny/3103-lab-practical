@@ -24,6 +24,18 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                nodejs(nodeJSInstallationName: 'NodeJS') {
+                    withSonarQubeEnv('SonarQube') {
+                        script {
+                            sh "${SONARQUBE_HOME}/bin/sonar-scanner -Dsonar.projectKey=lab -Dsonar.sources=./webserver"
+                        }
+                    }
+                }
+            }
+        }
+
         stage('OWASP Dependency Check') {
             steps {
                 // Run OWASP Dependency-Check
@@ -42,18 +54,6 @@ pipeline {
                 
                         // Write report to specified file
                         dependencyCheckPublisher pattern: 'dependency-check-report.xml'
-                    }
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                nodejs(nodeJSInstallationName: 'NodeJS') {
-                    withSonarQubeEnv('SonarQube') {
-                        script {
-                            sh "${SONARQUBE_HOME}/bin/sonar-scanner -Dsonar.projectKey=lab -Dsonar.sources=./webserver"
-                        }
                     }
                 }
             }
